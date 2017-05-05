@@ -1,11 +1,12 @@
-package com.google.springongcp;
+package com.google.springongcp.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
  * Created by joaomartins on 4/28/17.
  */
-public class LoggableMessage {
+public class LoggableMessage implements Serializable {
   private String user;
   private String body;
   private LocalDateTime createdAt;

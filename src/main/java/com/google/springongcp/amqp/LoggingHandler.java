@@ -1,4 +1,4 @@
-package com.google.springongcp;
+package com.google.springongcp.amqp;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

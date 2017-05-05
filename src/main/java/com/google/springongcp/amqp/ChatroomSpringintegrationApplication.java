@@ -1,5 +1,6 @@
-package com.google.springongcp;
+package com.google.springongcp.amqp;
 
+import com.google.springongcp.model.LoggableMessage;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 
-@SpringBootApplication
+//@SpringBootApplication
 @IntegrationComponentScan
 @RestController
 public class ChatroomSpringintegrationApplication {
@@ -30,11 +31,11 @@ public class ChatroomSpringintegrationApplication {
   private static final String QUEUE_NAME = "chan";
   private static OutboundGateway gateway;
 
-  public static void main(String[] args) {
-    ConfigurableApplicationContext context =
-        SpringApplication.run(ChatroomSpringintegrationApplication.class, args);
-    gateway = context.getBean(OutboundGateway.class);
-  }
+//  public static void main(String[] args) {
+//    ConfigurableApplicationContext context =
+//        SpringApplication.run(ChatroomSpringintegrationApplication.class, args);
+//    gateway = context.getBean(OutboundGateway.class);
+//  }
 
   @Bean
   public Queue chanQueue() {
