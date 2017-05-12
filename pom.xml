@@ -28,6 +28,14 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+			<exclusions>
+				<exclusion>
+					<!-- Use Jetty instead of Tomcat due to
+					 https://github.com/GoogleCloudPlatform/google-cloud-java/issues/2039-->
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-tomcat</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -52,6 +60,14 @@
 			<artifactId>spring-integration-googlepubsub</artifactId>
 			<version>0.1-SNAPSHOT</version>
 		</dependency>
+
+		<!-- Use Jetty instead of Tomcat due to
+     https://github.com/GoogleCloudPlatform/google-cloud-java/issues/2039-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jetty</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>
