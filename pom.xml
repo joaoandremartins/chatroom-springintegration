@@ -56,9 +56,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.integration</groupId>
-			<artifactId>spring-integration-googlepubsub</artifactId>
-			<version>0.1-SNAPSHOT</version>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-gcp-pubsub</artifactId>
+			<version>1.0.0.BUILD-SNAPSHOT</version>
 		</dependency>
 
 		<!-- Use Jetty instead of Tomcat due to
@@ -66,6 +66,18 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-jetty</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-integration-gcp</artifactId>
+			<version>1.0.0.BUILD-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-gcp-starter-core</artifactId>
+			<version>1.0.0.BUILD-SNAPSHOT</version>
 		</dependency>
 
 	</dependencies>
