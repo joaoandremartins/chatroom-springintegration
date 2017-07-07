@@ -1,28 +1,28 @@
 package com.google.springongcp.pubsub;
 
-import com.google.api.gax.grpc.ExecutorProvider;
-import com.google.api.gax.grpc.InstantiatingExecutorProvider;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.pubsub.spi.v1.AckReplyConsumer;
+import com.google.cloud.pubsub.v1.AckReplyConsumer;
 import com.google.protobuf.ByteString;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.gcp.core.GcpProperties;
+import org.springframework.cloud.gcp.core.GcpProjectIdProvider;
+import org.springframework.cloud.gcp.pubsub.core.PubsubTemplate;
 import org.springframework.cloud.gcp.pubsub.support.GcpHeaders;
+import org.springframework.cloud.gcp.pubsub.support.SubscriberFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.gcp.inbound.PubSubInboundChannelAdapter;
-import org.springframework.integration.gcp.outbound.PubSubMessageHandler;
+import org.springframework.integration.gcp.AckMode;
+import org.springframework.integration.gcp.inbound.PubsubInboundChannelAdapter;
+import org.springframework.integration.gcp.outbound.PubsubMessageHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,25 +59,27 @@ public class PubSubApplication {
   }
 
   @Bean
-  public PubSubInboundChannelAdapter messageChannelAdapter(
+  public PubsubInboundChannelAdapter messageChannelAdapter(
       @Qualifier("pubsubInputChannel") MessageChannel inputChannel,
-      GcpProperties gcpProperties,
-      GoogleCredentials credentials) {
-    PubSubInboundChannelAdapter adapter =
-        new PubSubInboundChannelAdapter(gcpProperties.getProjectId(), "messages", credentials);
+      SubscriberFactory subscriberFactory,
+      GcpProjectIdProvider provider) {
+    provider.getProjectId();
+    PubsubInboundChannelAdapter adapter =
+        new PubsubInboundChannelAdapter(subscriberFactory, "messages");
     adapter.setOutputChannel(inputChannel);
+    adapter.setAckMode(AckMode.MANUAL);
 
     return adapter;
   }
 
   @Bean
-  public PubSubInboundChannelAdapter ordersChannelAdapter(
+  public PubsubInboundChannelAdapter ordersChannelAdapter(
       @Qualifier("orders") MessageChannel inputChannel,
-      GcpProperties gcpProperties,
-      GoogleCredentials credentials) {
-    PubSubInboundChannelAdapter adapter =
-        new PubSubInboundChannelAdapter(gcpProperties.getProjectId(), "orders", credentials);
+      SubscriberFactory subscriberFactory) {
+    PubsubInboundChannelAdapter adapter =
+        new PubsubInboundChannelAdapter(subscriberFactory, "orders");
     adapter.setOutputChannel(inputChannel);
+    adapter.setAckMode(AckMode.MANUAL);
 
     return adapter;
   }
@@ -125,10 +127,9 @@ public class PubSubApplication {
 
   @Bean
   @ServiceActivator(inputChannel = "pubsubOutputChannel")
-  public MessageHandler messageSender(GcpProperties gcpProperties,
-      GoogleCredentials credentials) throws IOException {
-    PubSubMessageHandler outboundAdapter =
-        new PubSubMessageHandler(gcpProperties.getProjectId(), credentials);
+  public MessageHandler messageSender(PubsubTemplate pubsubTemplate) throws IOException {
+    PubsubMessageHandler outboundAdapter =
+        new PubsubMessageHandler(pubsubTemplate);
     outboundAdapter.setTopic("test");
     return outboundAdapter;
   }
@@ -141,10 +142,5 @@ public class PubSubApplication {
   @MessagingGateway(defaultRequestChannel = "pubsubOutputChannel")
   public interface PubsubOutboundGateway {
     void sendToPubsub(String text);
-  }
-
-  @Bean
-  public ExecutorProvider executorProvider() {
-    return InstantiatingExecutorProvider.newBuilder().setExecutorThreadCount(8).build();
   }
 }
