@@ -61,9 +61,7 @@ public class PubSubApplication {
   @Bean
   public PubsubInboundChannelAdapter messageChannelAdapter(
       @Qualifier("pubsubInputChannel") MessageChannel inputChannel,
-      SubscriberFactory subscriberFactory,
-      GcpProjectIdProvider provider) {
-    provider.getProjectId();
+      SubscriberFactory subscriberFactory) {
     PubsubInboundChannelAdapter adapter =
         new PubsubInboundChannelAdapter(subscriberFactory, "messages");
     adapter.setOutputChannel(inputChannel);
