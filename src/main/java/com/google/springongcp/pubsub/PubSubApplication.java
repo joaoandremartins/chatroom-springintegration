@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.gcp.core.GcpProjectIdProvider;
 import org.springframework.cloud.gcp.pubsub.core.PubsubTemplate;
 import org.springframework.cloud.gcp.pubsub.support.GcpHeaders;
 import org.springframework.cloud.gcp.pubsub.support.SubscriberFactory;
