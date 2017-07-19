@@ -2,15 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Spring integration demo</title>
+    <title>Spring Integration GCP sample</title>
 </head>
 <body>
 <div name="formDiv">
     <form action="/postMessage" method="post">
-        Message
-        <input type="text" name="message" />
-        <br/>
-        <input type="submit" />
+        Post message: <input type="text" name="message" /> <input type="submit" />
+    </form>
+    <form action="/newTopic" method="post">
+        New topic: <input type="text" name="name" /> <input type="submit" />
+    </form>
+    <form action="/newSubscription" method="post">
+        New subscription: <input type="text" name="name" />
+        for topic <input type="text" name="topic" /> <input type="submit" />
     </form>
 </div>
 </body>
