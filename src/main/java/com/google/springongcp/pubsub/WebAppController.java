@@ -16,7 +16,6 @@
 
 package com.google.springongcp.pubsub;
 
-import com.google.common.collect.ImmutableList;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -34,8 +33,10 @@ import com.google.pubsub.v1.TopicName;
 import com.google.springongcp.pubsub.PubsubApplication.PubsubOutboundGateway;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.gcp.pubsub.PubsubAdmin;
+import org.springframework.cloud.gcp.pubsub.PubSubAdmin;
+import org.springframework.cloud.gcp.pubsub.core.PubSubTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -49,7 +50,10 @@ public class WebAppController {
   private PubsubOutboundGateway messagingGateway;
 
   @Autowired
-  private PubsubAdmin admin;
+  private PubSubAdmin admin;
+
+  @Autowired
+  private PubSubTemplate pubSubTemplate;
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
@@ -145,5 +149,17 @@ public class WebAppController {
   @GetMapping("/queryDbSpecial")
   public List<Map<String, Object>> queryDbSpecial() {
     return jdbcTemplate.queryForList("SELECT * FROM user;");
+  }
+
+  public void publishMessage() {
+    this.pubSubTemplate.send("test", new GenericMessage<>("your message payload"));
+  }
+
+  @Autowired
+  private SampleConfig config;
+
+  @GetMapping("/testConfig")
+  public String testConfig() {
+    return config.getUrl();
   }
 }
