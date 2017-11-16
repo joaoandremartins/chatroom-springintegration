@@ -16,43 +16,31 @@
 
 package com.google.springongcp.pubsub;
 
-import java.io.IOException;
-
 import com.google.cloud.pubsub.v1.AckReplyConsumer;
 import com.google.protobuf.ByteString;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.gcp.config.GcpConfigProperties;
 import org.springframework.cloud.gcp.pubsub.core.PubSubTemplate;
 import org.springframework.cloud.gcp.pubsub.support.GcpHeaders;
-import org.springframework.cloud.gcp.pubsub.support.SubscriberFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.Resource;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.gcp.AckMode;
-import org.springframework.integration.gcp.inbound.PubSubInboundChannelAdapter;
-import org.springframework.integration.gcp.outbound.PubSubMessageHandler;
+import org.springframework.integration.gcp.pubsub.AckMode;
+import org.springframework.integration.gcp.pubsub.inbound.PubSubInboundChannelAdapter;
+import org.springframework.integration.gcp.pubsub.outbound.PubSubMessageHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+
+import java.io.IOException;
 
 @SpringBootApplication
 public class PubsubApplication {
 
   private static final Log LOGGER = LogFactory.getLog(PubsubApplication.class);
-
-  @Value("gs://jamnotifications/LockHolderKIlled_RequestProceeds.png")
-  private Resource file;
-
-  @Autowired
-  private GcpConfigProperties configProperties;
 
   public static void main(String[] args) throws IOException {
     SpringApplication.run(PubsubApplication.class, args);
@@ -68,9 +56,9 @@ public class PubsubApplication {
   @Bean
   public PubSubInboundChannelAdapter messageChannelAdapter(
       @Qualifier("pubsubInputChannel") MessageChannel inputChannel,
-      SubscriberFactory subscriberFactory) {
+      PubSubTemplate pubSubTemplate) {
     PubSubInboundChannelAdapter adapter =
-        new PubSubInboundChannelAdapter(subscriberFactory, "messages");
+        new PubSubInboundChannelAdapter(pubSubTemplate, "messages");
     adapter.setOutputChannel(inputChannel);
     adapter.setAckMode(AckMode.MANUAL);
 
@@ -107,9 +95,7 @@ public class PubsubApplication {
   @Bean
   @ServiceActivator(inputChannel = "pubsubOutputChannel")
   public MessageHandler messageSender(PubSubTemplate pubsubTemplate) {
-    PubSubMessageHandler outboundAdapter = new PubSubMessageHandler(pubsubTemplate);
-    outboundAdapter.setTopic("test");
-    return outboundAdapter;
+    return new PubSubMessageHandler(pubsubTemplate, "test");
   }
 
   @MessagingGateway(defaultRequestChannel = "pubsubOutputChannel")

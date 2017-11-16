@@ -16,32 +16,33 @@
 
 package com.google.springongcp.pubsub;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import com.google.pubsub.v1.Subscription;
 import com.google.pubsub.v1.SubscriptionName;
 import com.google.pubsub.v1.Topic;
 import com.google.pubsub.v1.TopicName;
 import com.google.springongcp.pubsub.PubsubApplication.PubsubOutboundGateway;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gcp.pubsub.PubSubAdmin;
 import org.springframework.cloud.gcp.pubsub.core.PubSubTemplate;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 public class WebAppController {
@@ -151,15 +152,21 @@ public class WebAppController {
     return jdbcTemplate.queryForList("SELECT * FROM user;");
   }
 
-  public void publishMessage() {
-    this.pubSubTemplate.send("test", new GenericMessage<>("your message payload"));
-  }
-
   @Autowired
   private SampleConfig config;
 
   @GetMapping("/testConfig")
   public String testConfig() {
     return config.getUrl();
+  }
+
+  @Value("gs://jamnotifications/LockHolderKIlled_RequestProceeds.png")
+  private Resource file;
+
+  @GetMapping("/file")
+  public ResponseEntity<Resource> serveFile() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.IMAGE_JPEG);
+    return new ResponseEntity<>(file, headers, HttpStatus.OK);
   }
 }
