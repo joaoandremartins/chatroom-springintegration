@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.gcp.core.GcpProjectIdProvider;
 import org.springframework.cloud.gcp.pubsub.PubSubAdmin;
 import org.springframework.cloud.gcp.pubsub.core.PubSubTemplate;
 import org.springframework.core.io.Resource;
@@ -47,6 +48,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @RestController
@@ -185,5 +187,24 @@ public class WebAppController {
     gateway.sendFileToGCS(new File("/usr/local/google/home/joaomartins/Downloads/IMG_1377.JPG"));
   }
 
+  @Autowired
+  private GcpProjectIdProvider projectIdProvider;
 
+  @GetMapping("/publish")
+  public void publish(@RequestParam("message") String message,
+          @RequestParam("topic") String topic) {
+    this.pubSubTemplate.publish(topic, message, null);
+  }
+
+//  @GetMapping("/pull")
+//  public String pull(@RequestParam("subscription") String subscription) {
+//    return this.pubSubTemplate.pullNext(subscription).getData().toStringUtf8();
+//  }
+
+  private static final Logger JUL_LOGGER = Logger.getLogger("WebAppController");
+
+  @GetMapping("/log")
+  public void log() {
+    JUL_LOGGER.info("logzzz");
+  }
 }
