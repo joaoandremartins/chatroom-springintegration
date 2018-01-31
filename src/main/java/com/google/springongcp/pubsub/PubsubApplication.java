@@ -17,47 +17,58 @@
 package com.google.springongcp.pubsub;
 
 import com.google.cloud.pubsub.v1.AckReplyConsumer;
-import com.google.cloud.storage.Storage;
-import com.google.protobuf.ByteString;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.amqp.rabbit.support.ValueExpression;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.gcp.integration.pubsub.AckMode;
+import org.springframework.cloud.gcp.integration.pubsub.inbound.PubSubInboundChannelAdapter;
+import org.springframework.cloud.gcp.integration.pubsub.outbound.PubSubMessageHandler;
 import org.springframework.cloud.gcp.pubsub.core.PubSubTemplate;
 import org.springframework.cloud.gcp.pubsub.support.GcpHeaders;
 import org.springframework.context.annotation.Bean;
-import org.springframework.integration.annotation.InboundChannelAdapter;
 import org.springframework.integration.annotation.MessagingGateway;
-import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.file.FileHeaders;
-import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
-import org.springframework.integration.file.remote.RemoteFileTemplate;
-import org.springframework.integration.gcp.pubsub.AckMode;
-import org.springframework.integration.gcp.pubsub.inbound.PubSubInboundChannelAdapter;
-import org.springframework.integration.gcp.pubsub.outbound.PubSubMessageHandler;
-import org.springframework.integration.gcp.storage.GCSSessionFactory;
-import org.springframework.integration.gcp.storage.inbound.StorageInboundChannelAdapter;
-import org.springframework.integration.gcp.storage.outbound.StorageOutboundChannelAdapter;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 @SpringBootApplication
+@EnableConfigurationProperties(SampleConfig.class)
 public class PubsubApplication {
 
   private static final Log LOGGER = LogFactory.getLog(PubsubApplication.class);
 
   public static void main(String[] args) throws IOException {
     SpringApplication.run(PubsubApplication.class, args);
+
+//    ConsoleHandler consoleHandler = new ConsoleHandler();
+//    consoleHandler.setLevel(Level.ALL);
+//    consoleHandler.setFormatter(new SimpleFormatter());
+//
+//    Logger logger = Logger.getLogger("com.google.api.client");
+//    logger.setLevel(Level.ALL);
+//    logger.addHandler(consoleHandler);
+//
+//    Logger lh = Logger.getLogger("httpclient.wire.header");
+//    lh.setLevel(Level.ALL);
+//    lh.addHandler(consoleHandler);
+//
+//    Logger lc = Logger.getLogger("httpclient.wire.content");
+//    lc.setLevel(Level.ALL);
+//    lc.addHandler(consoleHandler);
+//
+//    Logger gl = Logger.getLogger("io.grpc");
+//    gl.setLevel(Level.FINE);
+//    gl.addHandler(consoleHandler);
   }
 
   // Inbound channel adapter.
@@ -83,8 +94,7 @@ public class PubsubApplication {
   @ServiceActivator(inputChannel = "pubsubInputChannel")
   public MessageHandler messageReceiver1() {
     return message -> {
-      LOGGER.info("Message arrived! Payload: "
-          + ((ByteString) message.getPayload()).toStringUtf8());
+      LOGGER.info("Message arrived! Payload: " + message.getPayload());
       AckReplyConsumer consumer =
           (AckReplyConsumer) message.getHeaders().get(GcpHeaders.ACKNOWLEDGEMENT);
       consumer.ack();
@@ -96,8 +106,7 @@ public class PubsubApplication {
   @ServiceActivator(inputChannel = "pubsubInputChannel")
   public MessageHandler messageReceiver2() {
     return message -> {
-      LOGGER.info("Message also arrived here! Payload: "
-          + ((ByteString) message.getPayload()).toStringUtf8());
+      LOGGER.info("Message also arrived here! Payload: " + message.getPayload());
       AckReplyConsumer consumer =
           (AckReplyConsumer) message.getHeaders().get(GcpHeaders.ACKNOWLEDGEMENT);
       consumer.ack();
@@ -119,40 +128,59 @@ public class PubsubApplication {
   }
 
 
-  @Bean
-  @InboundChannelAdapter(channel = "blobChannel", poller = @Poller(fixedDelay = "5"))
-  public MessageSource<InputStream> inboundAdapter(Storage gcs) {
-    StorageInboundChannelAdapter adapter =
-            new StorageInboundChannelAdapter(new RemoteFileTemplate<>(new GCSSessionFactory(gcs)));
-    adapter.setRemoteDirectory("springone-houses");
-    adapter.setFilter(new AcceptOnceFileListFilter<>());
-    return adapter;
-  }
-
-  @Bean
-  @ServiceActivator(inputChannel = "blobChannel", poller = @Poller(fixedDelay = "10"))
-  public MessageHandler handleFiles() {
-    return message -> LOGGER.info(message.getHeaders().get(FileHeaders.REMOTE_FILE));
-  }
-
-  @Bean
-  public MessageChannel blobChannel() {
-    return new QueueChannel();
-  }
-
-  @Bean
-  @ServiceActivator(inputChannel = "writeFiles")
-  public MessageHandler outboundChannelAdapter(Storage gcs) {
-    StorageOutboundChannelAdapter outboundChannelAdapter =
-            new StorageOutboundChannelAdapter(new GCSSessionFactory(gcs));
-    outboundChannelAdapter.setRemoteDirectoryExpression(new ValueExpression<>("springintegrationz"));
-
-    return outboundChannelAdapter;
-  }
-
-  @MessagingGateway(defaultRequestChannel = "writeFiles")
-  public interface SIFileGateway {
-
-    void sendFileToGCS(File file);
-  }
+//  @Bean
+//  @InboundChannelAdapter(channel = "blobChannel", poller = @Poller(fixedDelay = "5"))
+//  public MessageSource<InputStream> inboundAdapter(Storage gcs) {
+//    GcsStreamingMessageSource adapter =
+//            new GcsStreamingMessageSource(new GcsRemoteFileTemplate(new GcsSessionFactory(gcs)));
+//    adapter.setRemoteDirectory("springintegrationz");
+//    adapter.setFilter(new AcceptOnceFileListFilter<>());
+//    return adapter;
+//  }
+//
+//  @Bean
+//  @ServiceActivator(inputChannel = "blobChannel", poller = @Poller(fixedDelay = "10"))
+//  public MessageHandler handleFiles() {
+//    return message -> LOGGER.info(message.getHeaders().get(FileHeaders.REMOTE_FILE));
+//  }
+//
+//  @Bean
+//  public MessageChannel blobChannel() {
+//    return new QueueChannel();
+//  }
+//
+//  @Bean
+//  @ServiceActivator(inputChannel = "writeFiles")
+//  public MessageHandler outboundChannelAdapter(Storage gcs) {
+//    GcsMessageHandler outboundChannelAdapter = new GcsMessageHandler(new GcsSessionFactory(gcs));
+//    outboundChannelAdapter.setRemoteDirectoryExpression(new ValueExpression<>("springintegrationz"));
+//
+//    return outboundChannelAdapter;
+//  }
+//
+//  @MessagingGateway(defaultRequestChannel = "writeFiles")
+//  public interface SIFileGateway {
+//
+//    void sendFileToGCS(File file);
+//  }
+//
+//  @Bean
+//  @InboundChannelAdapter(channel = "synchronizer", poller = @Poller(fixedDelay = "5000"))
+//  public MessageSource<File> synchronizerAdapter(Storage gcs) {
+//    GcsInboundFileSynchronizer synchronizer = new GcsInboundFileSynchronizer(gcs);
+//    synchronizer.setRemoteDirectory("springintegrationz");
+//
+//    GcsInboundFileSynchronizingMessageSource synchAdapter =
+//            new GcsInboundFileSynchronizingMessageSource(synchronizer);
+//    synchAdapter.setLocalDirectory(new File("springintegrationz"));
+//    synchAdapter.setAutoCreateLocalDirectory(true);
+//
+//    return synchAdapter;
+//  }
+//
+//  @Bean
+//  @ServiceActivator(inputChannel = "synchronizer")
+//  public MessageHandler handleSynchronizerFiles() {
+//    return message -> LOGGER.info("Synchronized file " + ((File) message.getPayload()).getName());
+//  }
 }

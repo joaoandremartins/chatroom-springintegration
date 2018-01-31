@@ -1,12 +1,10 @@
 package com.google.springongcp.pubsub;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Configuration
+@ConfigurationProperties("myapp")
 public class SampleConfig {
 
-//  @Value("${url}")
   private String url;
 
   public String getUrl() {

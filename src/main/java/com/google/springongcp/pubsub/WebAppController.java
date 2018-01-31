@@ -24,7 +24,6 @@ import com.google.springongcp.pubsub.PubsubApplication.PubsubOutboundGateway;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gcp.pubsub.PubSubAdmin;
 import org.springframework.cloud.gcp.pubsub.core.PubSubTemplate;
@@ -33,16 +32,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.support.GenericMessage;
+//import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
-import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,8 +57,8 @@ public class WebAppController {
   @Autowired
   private PubSubTemplate pubSubTemplate;
 
-  @Autowired
-  private JdbcTemplate jdbcTemplate;
+//  @Autowired
+//  private JdbcTemplate jdbcTemplate;
 
   private static final Log LOGGER = LogFactory.getLog(WebAppController.class);
 
@@ -154,10 +150,10 @@ public class WebAppController {
     return result;
   }
 
-  @GetMapping("/queryDbSpecial")
-  public List<Map<String, Object>> queryDbSpecial() {
-    return jdbcTemplate.queryForList("SELECT * FROM user;");
-  }
+//  @GetMapping("/queryDbSpecial")
+//  public List<Map<String, Object>> queryDbSpecial() {
+//    return jdbcTemplate.queryForList("SELECT * FROM user;");
+//  }
 
   @Autowired
   private SampleConfig config;
@@ -177,13 +173,23 @@ public class WebAppController {
     return new ResponseEntity<>(file, headers, HttpStatus.OK);
   }
 
-  @Autowired
-  PubsubApplication.SIFileGateway gateway;
+  @Value("gs://springintegrationz/IMG_1377.JPG")
+  private Resource gcsImage;
 
-  @GetMapping("/writefilesi")
-  public void writeFileSi() {
-    gateway.sendFileToGCS(new File("/usr/local/google/home/joaomartins/Downloads/IMG_1377.JPG"));
+  @GetMapping("/pic")
+  public ResponseEntity<Resource> servePic() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.IMAGE_JPEG);
+    return new ResponseEntity<>(gcsImage, headers, HttpStatus.OK);
   }
+
+//  @Autowired
+//  PubsubApplication.SIFileGateway gateway;
+//
+//  @GetMapping("/writefilesi")
+//  public void writeFileSi() {
+//    gateway.sendFileToGCS(new File("/usr/local/google/home/joaomartins/Downloads/IMG_1377.JPG"));
+//  }
 
 
 }
