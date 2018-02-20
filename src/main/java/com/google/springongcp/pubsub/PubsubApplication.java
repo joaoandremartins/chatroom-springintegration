@@ -17,16 +17,17 @@
 package com.google.springongcp.pubsub;
 
 import com.google.cloud.pubsub.v1.AckReplyConsumer;
+import com.google.springongcp.model.LoggableMessage;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.gcp.integration.pubsub.AckMode;
-import org.springframework.cloud.gcp.integration.pubsub.inbound.PubSubInboundChannelAdapter;
-import org.springframework.cloud.gcp.integration.pubsub.outbound.PubSubMessageHandler;
 import org.springframework.cloud.gcp.pubsub.core.PubSubTemplate;
+import org.springframework.cloud.gcp.pubsub.integration.AckMode;
+import org.springframework.cloud.gcp.pubsub.integration.inbound.PubSubInboundChannelAdapter;
+import org.springframework.cloud.gcp.pubsub.integration.outbound.PubSubMessageHandler;
 import org.springframework.cloud.gcp.pubsub.support.GcpHeaders;
 import org.springframework.context.annotation.Bean;
 import org.springframework.integration.annotation.MessagingGateway;
@@ -125,6 +126,10 @@ public class PubsubApplication {
   public interface PubsubOutboundGateway {
 
     void sendToPubsub(String text);
+
+    void sendToPubsub(byte[] bytes);
+
+    void sendToPubsub(LoggableMessage loggableMessage);
   }
 
 

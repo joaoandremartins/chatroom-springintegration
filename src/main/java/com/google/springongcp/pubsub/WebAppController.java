@@ -20,6 +20,7 @@ import com.google.pubsub.v1.Subscription;
 import com.google.pubsub.v1.SubscriptionName;
 import com.google.pubsub.v1.Topic;
 import com.google.pubsub.v1.TopicName;
+import com.google.springongcp.model.LoggableMessage;
 import com.google.springongcp.pubsub.PubsubApplication.PubsubOutboundGateway;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,22 +29,30 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gcp.core.GcpProjectIdProvider;
 import org.springframework.cloud.gcp.pubsub.PubSubAdmin;
 import org.springframework.cloud.gcp.pubsub.core.PubSubTemplate;
+import org.springframework.cloud.gcp.storage.GoogleStorageResourceBucket;
+import org.springframework.cloud.gcp.storage.GoogleStorageResourceObject;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.messaging.MessageHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.io.IOException;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -200,6 +209,36 @@ public class WebAppController {
   public void publish(@RequestParam("message") String message,
           @RequestParam("topic") String topic) {
     this.pubSubTemplate.publish(topic, message, null);
+  }
+  @Value("gs://sample-testingz")
+  private Resource gcsBucket;
+
+  @GetMapping("/signed")
+  public String signedUrl() throws IOException {
+    GoogleStorageResourceObject blob = (GoogleStorageResourceObject) this.gcsBucket.createRelative("sign");
+    return blob.createSignedUrl(TimeUnit.MINUTES, 2).toString();
+  }
+
+  @GetMapping("/createBucket")
+  public void createBucket() {
+    ((GoogleStorageResourceBucket) this.gcsBucket).create();
+  }
+
+  @PostMapping("/customMessage")
+  public void sendCustom(@RequestParam("message") String payload) {
+    this.messagingGateway.sendToPubsub(
+            new LoggableMessage("joaomartins@google.com", payload, LocalDateTime.now())
+    );
+  }
+
+  @Bean
+  @ServiceActivator(inputChannel = "pubsubInputChannel")
+  public MessageHandler receiveCustom() {
+    return message -> {
+      LoggableMessage loggableMessage = (LoggableMessage) message.getPayload();
+      LOGGER.info("Received message: " + loggableMessage.getUser() + " "
+              + loggableMessage.getCreatedAt() + " " + loggableMessage.getBody());
+    };
   }
 
 //  @GetMapping("/pull")
